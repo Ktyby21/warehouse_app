@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о работнике</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Приветствуем, {{ worker.fullname }}</h1>
+    <ul>
+        <li>GD: {{ worker.worker_id }}</li>
+        <li>Фирма: {{ worker.firma or 'Не указано' }}</li>
+        <li>Группа: {{ worker.group_name or 'Не указано' }}</li>
+        <li>Номер группы: {{ worker.group_number or 'Не указано' }}</li>
+        <li>Национальность: {{ worker.nationality or 'Не указано' }}</li>
+        <li>Язык: {{ worker.language }}</li>
+        <li>Транспорт: {{ worker.transport or 'Не указано' }}</li>
+        <li>Первый рабочий день: {{ worker.first_day.strftime('%Y-%m-%d') if worker.first_day else 'Не указано' }}</li>
+    </ul>
+    <div>Ссылки:</div>
+    <a href="/performance/{{ worker.worker_id }}">Продуктивность</a>
+    <a href="/schedule/{{ worker.worker_id }}">Расписание</a>
+    <a href="/workhours/{{ worker.worker_id }}">Рабочие часы</a>
+    <a href="{{ worker.worker_id }}/feedback/">Обратная связь</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>

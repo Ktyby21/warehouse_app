@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Отзыв №{{ feedback.feedback_id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #333; }
+        p { margin: 10px 0; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h2>Отзыв от {{ feedback.worker_id }} от {{ feedback.feedback_date.strftime('%Y-%m-%d') }}</h2>
+    <p>{{ feedback.feedback_text }}</p>
+    <a href="{{ url_for('view_feedbacks') }}">Назад к списку отзывов</a>
+</body>
+</html>

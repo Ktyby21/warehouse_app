@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Просмотр уведомлений</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 80%; margin: auto; padding-top: 20px; }
+        .notification { margin-bottom: 20px; padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd; }
+        .notification p { margin: 5px 0; }
+        .notification-date { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Уведомления</h1>
+        {% for notification in notifications %}
+            <div class="notification">
+                <p><strong>Отправитель:</strong> {{ notification.sender_id }}</p>
+                <p><strong>Получатель:</strong> {{ notification.recipient_id }}</p>
+                <p class="notification-date"><strong>Дата отправки:</strong> {{ notification.send_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p><strong>Сообщение:</strong> {{ notification.message }}</p>
+            </div>
+        {% else %}
+            <p>Уведомлений пока нет.</p>
+        {% endfor %}
+        <a href="{{ url_for('admin_home') }}">На главную</a>
+    </div>
+</body>
+</html>
