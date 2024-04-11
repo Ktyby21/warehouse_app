@@ -1,9 +1,9 @@
 from app import app, db
-from flask import request,render_template, request, redirect, session, url_for, flash
+from flask import jsonify, request,render_template, request, redirect, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from app.models import UserAccount, Worker, Process, Feedback, Notification
+from app.models import Attendance, ProcessType, UserAccount, Worker, Process, Feedback, Notification
 from datetime import datetime
-from app.utils import handle_uploaded_file, requires_access_level 
+from app.utils import calculate_performance, get_targets_for_period, handle_uploaded_file, requires_access_level 
 import pandas as pd
 from io import BytesIO
 from .forms import FeedbackForm, NotificationForm
@@ -213,7 +213,18 @@ def upload_process_data():
             worker_id = row['USER LOGIN']
             scanned_items = int(row['SZTUKI'])
             time_spent = float(row['CZAS'])
-            process_name = row['process_name'] if 'process_name' in row and not pd.isna(row['process_name']) else None
+            process_name = row.get('process_name')
+
+            # Поиск process_id по имени процесса
+            if process_name:
+                process_type = ProcessType.query.filter_by(process_name=process_name).first()
+                if not process_type:
+                    flash(f'Process "{process_name}" not found.', 'warning')
+                    continue  # Пропускаем запись, если процесс не найден
+                process_id = process_type.process_id
+            else:
+                flash('Process name is missing in the row', 'warning')
+                continue
 
             # Проверка существования worker_id
             worker = Worker.query.filter_by(worker_id=worker_id).first()
@@ -224,7 +235,7 @@ def upload_process_data():
                     worker_id=worker_id,
                     scanned_items=scanned_items,
                     time_spent=time_spent,
-                    process_name=process_name
+                    process_id=process_id  # Используем process_id вместо process_name
                 )
                 db.session.add(new_process)
             else:
@@ -293,3 +304,87 @@ def send_notification():
 def view_notifications():
     notifications = Notification.query.order_by(Notification.send_date.desc()).all()
     return render_template('view_notifications.html', notifications=notifications)
+
+@app.route('/performance/<worker_id>/', methods=['GET'])
+def show_performance(worker_id):
+    # Здесь можно добавить дополнительную логику, например, проверку существования работника
+    return render_template('performance.html', worker_id=worker_id)
+
+@app.route('/performance/data/', methods=['GET'])
+def handle_performance_request():
+    worker_id = request.args.get('worker_id')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    # Конвертирование строковых дат в объекты datetime
+    start_date_obj = datetime.strptime(start_date, '%m/%d/%Y').date()
+    end_date_obj = datetime.strptime(end_date, '%m/%d/%Y').date()
+
+    # Запрос к БД для агрегации данных по процессам, включая process_id
+    process_data = db.session.query(
+        ProcessType.process_id,
+        ProcessType.process_name,
+        Process.date,
+        db.func.sum(Process.scanned_items).label('scanned_items'),
+        db.func.sum(Process.time_spent).label('time_spent')
+    ).join(ProcessType).filter(
+        Process.worker_id == worker_id,
+        Process.date >= start_date_obj,
+        Process.date <= end_date_obj
+    ).group_by(ProcessType.process_id, ProcessType.process_name, Process.date).all()
+
+    # Преобразование результатов запроса в формат, пригодный для calculate_performance
+    process_data_formatted = [
+        {
+            "process_id": data.process_id,  # Теперь используем process_id
+            "process_name": data.process_name,  # Можем сохранить process_name для отображения
+            "date": data.date,
+            "scanned_items": data.scanned_items,
+            "time_spent": float(data.time_spent)
+        } for data in process_data
+    ]
+
+    # Получение целей для процессов за интересующий период
+    targets = get_targets_for_period(start_date_obj, end_date_obj)
+
+    # Вычисление производительности
+    performance_results = calculate_performance(process_data_formatted, targets, start_date_obj, end_date_obj)
+
+    # Подготовка и возврат ответа
+    return jsonify({
+        'worker_id': worker_id,
+        'start_date': start_date,
+        'end_date': end_date,
+        'data': performance_results
+    })
+
+@app.route('/schedule/<worker_id>')
+def show_schedule(worker_id):
+    # Передача worker_id в шаблон
+    return render_template('schedule.html', worker_id=worker_id)
+
+
+@app.route('/api/schedule/<worker_id>')
+def get_schedule(worker_id):
+    schedule_data = Attendance.query.filter_by(worker_id=worker_id).all()
+    
+    events = []
+    for entry in schedule_data:
+        if entry.day_type != 'P':
+            title = entry.day_type
+        else:
+            start_time = entry.scheduled_start_time.strftime('%H:%M') if entry.scheduled_start_time else 'Unknown'
+            end_time = entry.scheduled_end_time.strftime('%H:%M') if entry.scheduled_end_time else 'Unknown'
+            title = f"{start_time}-{end_time}"
+        
+        # Создание объекта события
+        event = {
+            'title': title,
+            'start': entry.attendance_date.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'absenceReason': entry.absence_reason if entry.absence_reason else ''  # Добавляем причину отсутствия, если она есть
+        }
+        events.append(event)
+    
+    return jsonify(events)
+

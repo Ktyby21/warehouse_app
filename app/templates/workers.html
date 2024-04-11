@@ -38,15 +38,12 @@
                 <tr>
                     <th>Worker ID</th>
                     <th>ФИО</th>
-                    <th>Пол</th>
-                    <th>Национальность</th>
                     <th>Язык</th>
                     <th>Фирма</th>
                     <th>Группа</th>
                     <th>Номер группы</th>
                     <th>Транспорт</th>
                     <th>Активность</th>
-                    <th>Первый день</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,15 +51,12 @@
                 <tr>
                     <td>{{ worker.worker_id }}</td>
                     <td>{{ worker.fullname }}</td>
-                    <td>{{ worker.gender }}</td>
-                    <td>{{ worker.nationality }}</td>
-                    <td>{{ worker.language }}</td>
-                    <td>{{ worker.firma }}</td>
+                    <td>{{ worker.language.name }}</td>
+                    <td>{{ worker.firm.name }}</td>
                     <td>{{ worker.group_name }}</td>
                     <td>{{ worker.group_number }}</td>
                     <td>{{ worker.transport }}</td>
                     <td>{{ worker.is_active }}</td>
-                    <td>{{ worker.first_day }}</td>
                 </tr>
                 {% else %}
                 <tr>

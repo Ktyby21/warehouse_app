@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Расписание работника</title>
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.css' rel='stylesheet' />
+    <script src='https://code.jquery.com/jquery-3.5.1.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
+    <style>
+      .fc-content { /* Селектор для контента событий в FullCalendar */
+          text-align: center; /* Выравнивание текста по центру */
+      }
+      #calendar {
+          max-width: 50em; /* Максимальная ширина календаря */
+          margin: 0 auto; /* Центрирование календаря */
+          padding: 10px;
+          
+      }
+      .fc-absence-reason {
+          font-size: 0.85em; /* Уменьшаем размер шрифта */
+          color: #ff0000; /* Красный цвет текста */
+          margin-top: 5px; /* Отступ сверху */
+          background-color: aliceblue;
+          border-radius: 7%;
+      }
+    </style>
+    <script>
+      $(document).ready(function() {
+          $('#calendar').fullCalendar({
+              header: {
+                  left: 'prev,next today',
+                  center: 'title',
+              },
+              defaultView: 'month',
+              eventRender: function(event, element) {
+                  if (event.absenceReason) {
+                      // Добавляем причину отсутствия под заголовок события
+                      element.find('.fc-title').after(
+                          $('<div class="fc-absence-reason"/>').text(`${event.absenceReason}`)
+                      );
+                  }
+              }
+          });
+          // Загрузка расписания
+          fetchSchedule('{{ worker_id }}');
+      });
+
+    function fetchSchedule(workerId) {
+        $.ajax({
+            url: `/api/schedule/${workerId}`,
+            type: 'GET',
+            success: function(data) {
+                $('#calendar').fullCalendar('removeEvents');
+                $('#calendar').fullCalendar('addEventSource', data);
+            },
+            error: function(e) {
+                console.error("Ошибка при получении данных: ", e);
+            }
+        });
+    }
+    </script>
+</head>
+<body>
+    <input type="hidden" id="worker_id" value="{{ worker_id }}"> <!-- Используется для передачи worker_id в JavaScript -->
+    <div id='calendar'></div> <!-- Контейнер для календаря -->
+</body>
+</html>

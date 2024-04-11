@@ -41,13 +41,11 @@
     <h1>Приветствуем, {{ worker.fullname }}</h1>
     <ul>
         <li>GD: {{ worker.worker_id }}</li>
-        <li>Фирма: {{ worker.firma or 'Не указано' }}</li>
+        <li>Фирма: {{ worker.firm.name or 'Не указано' }}</li>
         <li>Группа: {{ worker.group_name or 'Не указано' }}</li>
         <li>Номер группы: {{ worker.group_number or 'Не указано' }}</li>
-        <li>Национальность: {{ worker.nationality or 'Не указано' }}</li>
-        <li>Язык: {{ worker.language }}</li>
+        <li>Язык: {{ worker.language.name }}</li>
         <li>Транспорт: {{ worker.transport or 'Не указано' }}</li>
-        <li>Первый рабочий день: {{ worker.first_day.strftime('%Y-%m-%d') if worker.first_day else 'Не указано' }}</li>
     </ul>
     <div>Ссылки:</div>
     <a href="/performance/{{ worker.worker_id }}">Продуктивность</a>
