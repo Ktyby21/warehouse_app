@@ -1,26 +1,33 @@
 from collections import defaultdict
 from flask import session, redirect, url_for, flash, request
 from functools import wraps
-
+from flask_login import current_user
 import psycopg2
 from sqlalchemy import func
-from .models import ProcessTarget, ProcessType, UserAccount, Worker, Attendance , Firm, Process, db
+from .models import ProcessTarget, ProcessType, UserAccessLevel, UserAccount, Worker, Attendance , Firm, Process, WorkerGroupName, WorkerGroupNumber, WorkerTransportType, Message, db
 from io import BytesIO
 import pandas as pd
 from datetime import datetime, time, timedelta
 
-def requires_access_level(levels):
+def requires_access_level(access_levels):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'worker_id' not in session:
+            if not current_user.is_authenticated:  # Проверяем, авторизован ли пользователь
                 flash('You need to be signed in to access this page.', 'danger')
                 return redirect(url_for('login'))
-            
-            user = UserAccount.query.filter_by(worker_id=session['worker_id']).first()
-            if user.access_level not in levels:
+
+            # Получаем объект уровня доступа
+            access_level_obj = UserAccessLevel.query.join(UserAccount).filter(UserAccount.worker_id == current_user.worker_id).first()
+
+            if not access_level_obj or access_level_obj.access_level_name not in access_levels:
                 flash('You do not have permission to access this page.', 'danger')
-                return redirect(url_for('index'))
+                # Перенаправляем на соответствующую страницу в зависимости от уровня доступа
+                if current_user.access_level.access_level_name == 'admin' or current_user.access_level.access_level_name == 'superadmin':
+                    return redirect(url_for('admin_home'))
+                else:
+                    return redirect(url_for('worker_home', worker_login=current_user.worker_login))
+
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -40,44 +47,46 @@ def get_or_create_firm(firma_name):
         db.session.commit()
     return firm.firm_id
 
+import re
+
 def parse_labels(label_str):
-    hala = None
-    transport = None
-    nationality = None
-    group_number = None
-    group_name = None
+    transport_id = None
+    group_name_id = None
+    group_number_id = None
 
-    # Приводим всю строку к нижнему регистру для упрощения сравнений
-    labels = label_str.lower().split(',')
-    
-    for label in labels:
-        label = label.strip()
-        if label in ["hala a", "hala b"]:
-            hala = label.title()
-        elif label in ["pruszcz azaliowa", "pruszcz żabka", "rotmanka lidl"]:
-            transport = label.title()
-        elif label in ["polska", "ukraina", "rosja"]:  # Продолжите список по необходимости
-            nationality = label.capitalize()
-        else:
-            # Обрабатываем возможные варианты групп
-            if label.endswith("indywidualny"):
-                group_number = "Indywidualny"
-                group_name = label.rsplit(' ', 1)[0] if label.endswith("indywidualny") and len(label.rsplit(' ', 1)) > 1 else None
-            elif any(label.startswith(str(i) + " ") for i in range(1, 16)) or label.startswith("a "):
-                parts = label.split(' ', 1)
-                group_number = parts[0].capitalize()  # "A" оставляем как есть, числа в верхнем регистре не изменятся
-                if len(parts) > 1:
-                    group_name = parts[1].capitalize()
-                else:
-                    group_name = None
-            # Этот блок можно расширить, если есть другие специфические случаи для обработки
+    # Приведение всей строки к нижнему регистру
+    label_str = label_str.lower()
 
-    # Возвращаем значения, при необходимости приводя некоторые из них к более читаемому виду
-    return (hala.title() if hala else None, 
-            transport.title() if transport else None, 
-            nationality.capitalize() if nationality else None, 
-            group_number.capitalize() if group_number else None, 
-            group_name.capitalize() if group_name else None)
+    # Получаем список всех возможных транспортов, имен групп и номеров групп
+    transports = WorkerTransportType.query.all()
+    group_names = WorkerGroupName.query.all()
+    group_numbers = WorkerGroupNumber.query.all()
+
+    # Итерация по всем транспортам и проверка, содержится ли имя транспорта в строке этикеток
+    for transport in transports:
+        if transport.name.lower() in label_str:
+            transport_id = transport.transport_id
+            break  # Прерываем цикл при первом совпадении
+
+    # Ищем название группы и номер группы, следующий за ним через пробел
+    for group_name in group_names:
+        group_name_lower = group_name.name.lower()
+        if group_name_lower in label_str:
+            start_index = label_str.find(group_name_lower) + len(group_name_lower)
+            if start_index < len(label_str) and label_str[start_index] == ' ':
+                # Ищем номер группы после найденного названия группы
+                possible_number = label_str[start_index+1:].split(',')[0].strip()  # Разделение до следующей запятой или конца строки
+                for group_number in group_numbers:
+                    if group_number.number.lower() == possible_number:
+                        group_name_id = group_name.group_name_id
+                        group_number_id = group_number.group_number_id
+                        break  # Прерываем внутренний цикл если найден номер группы
+                if group_number_id:  # Прерываем внешний цикл если найдена группа и номер
+                    break
+
+    return transport_id, group_name_id, group_number_id
+
+
 
 def time_to_hours(start_timestamp, end_timestamp):
 
@@ -91,10 +100,9 @@ def time_to_hours(start_timestamp, end_timestamp):
 def handle_uploaded_file(file_stream):
     try:
         df = pd.read_excel(file_stream, sheet_name='Dane szczególowe', header=1)
-        
-        new_column_names = [
+        df.columns = [
             'Pracownik', 'Numer', 'Dzień tygodnia', 'Data', 'Plan Rozpoczecie pracy',
-            'Plan Zakonczenie pracy', 'Plan Czas pracy', 'Typ dnia', 'Netto Rozpoczecie pracy',
+            'Plan Zakonczenie pracy', 'Plan Czas работы', 'Typ dnia', 'Netto Rozpoczecie pracy',
             'Netto Zakonczenie pracy', 'Neto Czas pracy', 'Wykonanie Rozpoczecie pracy',
             'Wykonanie Zakonczenie pracy', 'Pobyt', 'Wykonanie Czas pracy', 'Przerwy',
             'Bilans', 'Zaliczona', 'Dopelnienie', 'Nadg.dob. 50%', 'Nadg.dob. 100%',
@@ -102,81 +110,96 @@ def handle_uploaded_file(file_stream):
             'Pracodawca', 'Lokalizacja', 'Dział', 'Stanowisko','Etykiety'
         ]
 
-        df.columns = new_column_names
-
-
         for index, row in df.iterrows():
-            worker_id = str(row['Numer'])
+            worker_login = str(row['Numer'])  # Worker login from the excel
             fullname = row['Pracownik']
             firma_name = row['Pracodawca']
             firm_id = get_or_create_firm(firma_name)
-            hala, transport, nationality, group_number, group_name = parse_labels(row['Etykiety'])
-            user_account_exists = UserAccount.query.filter_by(worker_id=worker_id).first() is not None
-            worker = Worker.query.filter_by(worker_id=worker_id).first()
-            if user_account_exists:
+
+            # Parse labels to get ids for transport, group name, and group number
+            transport_id, group_name_id, group_number_id = parse_labels(row['Etykiety'])
+            user_account = UserAccount.query.filter_by(worker_login=worker_login).first()
+
+            if user_account:
+                worker = Worker.query.filter_by(worker_id=user_account.worker_id).first()
                 if not worker:
+                    # Create new worker entry if not exists
                     new_worker = Worker(
-                    worker_id=worker_id,
-                    fullname=fullname,
-                    group_name=group_name,
-                    group_number=group_number,
-                    transport=transport,
-                    firm_id=firm_id,
-                    # И другие поля, которые вы хотите инициализировать
+                        worker_id=user_account.worker_id,
+                        fullname=fullname,
+                        transport_id=transport_id,
+                        group_name_id=group_name_id,
+                        group_number_id=group_number_id,
+                        firm_id=firm_id,
+                        # add other fields as necessary
                     )
                     db.session.add(new_worker)
-                    db.session.commit()
-                    flash(f'New worker {worker_id} added to the database.', 'success')
+                    flash(f'New worker {worker_login} added to the database.', 'success')
                 else:
-                    if worker.fullname != fullname or worker.group_name != group_name or worker.group_number != group_number or worker.transport != transport or worker.firm_id != firm_id:
-                        worker.fullname = fullname
-                        worker.group_name = group_name
-                        worker.group_number = group_number
-                        worker.transport = transport
-                        worker.firm_id = firm_id
-                        db.session.commit()
-                        flash(f'Updated worker data for {worker_id}.', 'success')
-                    
-                    attendance_date = row['Data']
-                    plan_start_time = row['Plan Rozpoczecie pracy'] if not pd.isna(row['Plan Rozpoczecie pracy']) else None
-                    plan_end_time = row['Plan Zakonczenie pracy'] if not pd.isna(row['Plan Zakonczenie pracy']) else None
-                    scheduled_work_hours = time_to_hours(plan_start_time, plan_end_time) if not pd.isna(row['Plan Rozpoczecie pracy']) and not pd.isna(row['Plan Zakonczenie pracy']) else None
-                    actual_start_time=row['Wykonanie Rozpoczecie pracy'] if not pd.isna(row['Wykonanie Rozpoczecie pracy']) else None
-                    actual_end_time=row['Wykonanie Zakonczenie pracy'] if not pd.isna(row['Wykonanie Zakonczenie pracy']) else None
-                    actual_work_time = time_to_hours(actual_start_time, actual_end_time) if not pd.isna(row['Wykonanie Rozpoczecie pracy']) and not pd.isna(row['Wykonanie Zakonczenie pracy']) else None
-                    day_type = row['Typ dnia'] if not pd.isna(row['Typ dnia']) else None
-                    existing_attendance = Attendance.query.filter_by(worker_id=worker_id, attendance_date=attendance_date).first()
-                    if existing_attendance:
-                        # Обновление существующей записи данными из файла
-                        existing_attendance.day_type = day_type
-                        existing_attendance.scheduled_start_time = plan_start_time
-                        existing_attendance.scheduled_end_time = plan_end_time
-                        existing_attendance.scheduled_work_hours = scheduled_work_hours
-                        existing_attendance.actual_work_hours = actual_work_time
-                        existing_attendance.actual_work_hours = actual_work_time
-                        existing_attendance.absence_reason = row ['Nieobecnosc'] if not pd.isna(row['Nieobecnosc']) else None,
-                        existing_attendance.break_time = row['Przerwy'] if not pd.isna(row['Przerwy']) else None
-                        # Продолжение обновления других полей...
-                        db.session.commit()
-                        flash(f'Record for {worker_id} on {attendance_date} updated.', 'success')
-                    else:
-                        attendance = Attendance(worker_id=worker_id, attendance_date=attendance_date,
-                                                scheduled_start_time=plan_start_time,
-                                                scheduled_end_time=plan_end_time,
-                                                scheduled_work_hours=scheduled_work_hours,
-                                                actual_work_hours=actual_work_time,
-                                                day_type=day_type,
-                                                absence_reason=row['Nieobecnosc'] if not pd.isna(row['Nieobecnosc']) else None,
-                                                break_time = row['Przerwy'] if not pd.isna(row['Przerwy']) else None)
-                        db.session.add(attendance)
-                        db.session.commit()
-                        flash(f'Added attendance data for {worker_id} on {attendance_date}.', 'success')
+                    # Update existing worker details
+                    worker.fullname = fullname
+                    worker.transport_id = transport_id
+                    worker.group_name_id = group_name_id
+                    worker.group_number_id = group_number_id
+                    worker.firm_id = firm_id
+                    db.session.commit()
+                    flash(f'Updated worker data for {worker_login}.', 'success')
+                handle_attendance_data(worker.worker_id, row)
             else:
-                # Skip this worker_id because it's not found in UserAccount
-                continue    
+                flash(f'No user account found for {worker_login}.', 'warning')
+        db.session.commit()
+        flash('Data uploaded successfully.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error processing file: {e}', 'danger')
+
+
+def handle_attendance_data(worker_id, row):
+    attendance_date = row['Data']
+    plan_start_time = row['Plan Rozpoczecie pracy'] if not pd.isna(row['Plan Rozpoczecie pracy']) else None
+    plan_end_time = row['Plan Zakonczenie pracy'] if not pd.isna(row['Plan Zakonczenie pracy']) else None
+    scheduled_work_hours = time_to_hours(plan_start_time, plan_end_time) if not pd.isna(row['Plan Rozpoczecie pracy']) and not pd.isna(row['Plan Zakonczenie pracy']) else None
+    actual_start_time = row['Wykonanie Rozpoczecie pracy'] if not pd.isna(row['Wykonanie Rozpoczecie pracy']) else None
+    actual_end_time = row['Wykonanie Zakonczenie pracy'] if not pd.isna(row['Wykonanie Zakonczenie pracy']) else None
+    actual_work_time = time_to_hours(actual_start_time, actual_end_time) if not pd.isna(row['Wykonanie Rozpoczecie pracy']) and not pd.isna(row['Wykonanie Zakonczenie pracy']) else None
+    break_time = row['Przerwy'] if not pd.isna(row['Przerwy']) else None
+    day_type = row['Typ dnia'] if not pd.isna(row['Typ dnia']) else None
+
+    # Creating or updating attendance data
+    existing_attendance = Attendance.query.filter_by(worker_id=worker_id, attendance_date=attendance_date).first()
+    if existing_attendance:
+        update_existing_attendance(existing_attendance, day_type, plan_start_time, plan_end_time, scheduled_work_hours, actual_work_time, break_time, row)
+    else:
+        add_new_attendance(worker_id, attendance_date, day_type, plan_start_time, plan_end_time, scheduled_work_hours, actual_work_time, break_time, row)
+
+def update_existing_attendance(attendance, day_type, start_time, end_time, scheduled_hours, actual_hours, break_time, row):
+    # Update existing attendance record with new details
+    attendance.day_type = day_type
+    attendance.scheduled_start_time = start_time
+    attendance.scheduled_end_time = end_time
+    attendance.scheduled_work_hours = scheduled_hours
+    attendance.actual_work_hours = actual_hours
+    attendance.break_time = break_time
+    attendance.absence_reason = row['Nieobecnosc'] if not pd.isna(row['Nieobecnosc']) else None
+    db.session.commit()
+    flash('Attendance record updated.', 'success')
+
+def add_new_attendance(worker_id, date, day_type, start_time, end_time, scheduled_hours, actual_hours, break_time, row):
+    # Create a new attendance record
+    new_attendance = Attendance(
+        worker_id=worker_id,
+        attendance_date=date,
+        day_type=day_type,
+        scheduled_start_time=start_time,
+        scheduled_end_time=end_time,
+        scheduled_work_hours=scheduled_hours,
+        actual_work_hours=actual_hours,
+        break_time=break_time,
+        absence_reason=row['Nieobecnosc'] if not pd.isna(row['Nieobecnosc']) else None
+    )
+    db.session.add(new_attendance)
+    db.session.commit()
+    flash('New attendance record added.', 'success')
 
 def get_targets_for_period(start_date, end_date):
     # Получение последних целей для всех процессов перед началом периода одним запросом
@@ -271,3 +294,4 @@ def calculate_performance(process_data, targets, start_date, end_date):
         })
     
     return performance_results
+

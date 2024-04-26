@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рабочее время</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa; /* светлый фон для контраста */
+        }
+        .container {
+            background: white; /* фон для основного контейнера */
+            padding: 20px; /* внутренний отступ */
+            border-radius: 8px; /* скругление углов */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); /* тень для добавления глубины */
+            margin-top: 20px; /* отступ сверху */
+        }
+        h2 {
+            color: #007bff; /* синий цвет заголовка */
+            font-weight: 500; /* немного жирности */
+        }
+        .table th {
+            background-color: #007bff; /* синий фон для заголовков таблицы */
+            color: white; /* белый текст */
+        }
+        .table td, .table th {
+            vertical-align: middle; /* выравнивание содержимого по середине */
+        }
+        form > div {
+            margin-bottom: 10px; /* отступ между элементами формы */
+        }
+        label {
+            font-weight: bold; /* жирное начертание для меток */
+            margin-bottom: .5rem; /* маленький отступ снизу меток */
+        }
+        input[type=submit] {
+            margin-top: 10px; /* отступ сверху для кнопки отправки */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('worker_home') }}" class="btn btn-link">Домашняя страница</a>
+        <h2>Рабочее время</h2>
+        <form action="{{ url_for('worker_attendance') }}" method="post" class="mb-3">
+            <div class="form-group">
+                <label for="month">Месяц:</label>
+                <input type="number" id="month" name="month" value="{{ month }}" min="1" max="12" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="year">Год:</label>
+                <input type="number" id="year" name="year" value="{{ year }}" min="2020" max="2030" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Показать</button>
+        </form>
+        <h3>Итого за месяц: Плановые часы - {{ total_scheduled }}, Фактические часы - {{ total_actual }}</h3>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Тип дня</th>
+                    <th>Начало смены</th>
+                    <th>Конец смены</th>
+                    <th>Фактические часы</th>
+                    <th>Причина отсутствия</th>
+                    <th>Время перерыва</th>
+                </tr>
+            </thead>
+            <tbody>
+              {% for day in attendance %}
+              <tr>
+                  <td>{{ day.date.strftime('%d.%m.%Y') }}</td>
+                  <td>{{ day.day_type }}</td>
+                  <td>{{ day.start_time | default('', true) }}</td>
+                  <td>{{ day.end_time | default('', true) }}</td>
+                  <td>{{ day.work_hours | default('', true) }}</td>
+                  <td>{{ day.absence_reason | default('', true) }}</td>
+                  <td>{{ day.break_time | default('', true) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script src="//code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

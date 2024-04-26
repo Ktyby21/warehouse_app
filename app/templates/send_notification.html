@@ -12,6 +12,7 @@
     </style>
 </head>
 <body>
+    <a href="{{ url_for('worker_home') }}">Домашняя страница</a>
     <div class="container">
         <h1>Отправка уведомления</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}

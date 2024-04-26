@@ -41,7 +41,6 @@
                     <th>Язык</th>
                     <th>Фирма</th>
                     <th>Группа</th>
-                    <th>Номер группы</th>
                     <th>Транспорт</th>
                     <th>Активность</th>
                 </tr>
@@ -49,12 +48,11 @@
             <tbody>
                 {% for worker in workers %}
                 <tr>
-                    <td>{{ worker.worker_id }}</td>
+                    <td>{{ worker.user_account.worker_login }}</td>
                     <td>{{ worker.fullname }}</td>
                     <td>{{ worker.language.name }}</td>
                     <td>{{ worker.firm.name }}</td>
-                    <td>{{ worker.group_name }}</td>
-                    <td>{{ worker.group_number }}</td>
+                    <td>{{ worker.group_name.name if worker.group_name }} {{ worker.group_number.number if worker.group_number else '' }}</td>
                     <td>{{ worker.transport }}</td>
                     <td>{{ worker.is_active }}</td>
                 </tr>

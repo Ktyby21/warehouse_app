@@ -8,61 +8,83 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
     <style>
-      .fc-content { /* Селектор для контента событий в FullCalendar */
-          text-align: center; /* Выравнивание текста по центру */
+      body {
+          font-family: 'Arial', sans-serif;
+          background-color: #f4f4f4;
+          margin: 0;
+          padding: 20px;
       }
       #calendar {
-          max-width: 50em; /* Максимальная ширина календаря */
-          margin: 0 auto; /* Центрирование календаря */
+          max-width: 800px;
+          margin: 0 auto;
+          background-color: white;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      }
+      .fc-header-toolbar {
+          background: #007bff;
+          color: white;
           padding: 10px;
-          
+          border-radius: 8px 8px 0 0;
+      }
+      .fc-content {
+          text-align: center;
+          font-size: large;
+          color: #eaeaea;
       }
       .fc-absence-reason {
-          font-size: 0.85em; /* Уменьшаем размер шрифта */
-          color: #ff0000; /* Красный цвет текста */
-          margin-top: 5px; /* Отступ сверху */
-          background-color: aliceblue;
-          border-radius: 7%;
+          font-size: 0.85em;
+          color: #d9534f; /* Изменение цвета на темно-красный */
+          background-color: #f7f7f7;
+          padding: 2px 5px;
+          margin-top: 5px;
+          border-radius: 5px;
+          display: flex;
+          justify-content: center;
       }
     </style>
-    <script>
-      $(document).ready(function() {
-          $('#calendar').fullCalendar({
-              header: {
-                  left: 'prev,next today',
-                  center: 'title',
-              },
-              defaultView: 'month',
-              eventRender: function(event, element) {
-                  if (event.absenceReason) {
-                      // Добавляем причину отсутствия под заголовок события
-                      element.find('.fc-title').after(
-                          $('<div class="fc-absence-reason"/>').text(`${event.absenceReason}`)
-                      );
-                  }
+<script>
+  $(document).ready(function() {
+      $('#calendar').fullCalendar({
+          header: {
+              left: 'prev,next today',
+              center: 'title',
+          },
+          defaultView: 'month',
+          firstDay: 1, // Начать неделю с понедельника
+          eventRender: function(event, element) {
+              if (event.absenceReason) {
+                  // Добавляем причину отсутствия под заголовок события
+                  element.find('.fc-title').after(
+                      $('<div class="fc-absence-reason"/>').text(`${event.absenceReason}`)
+                  );
               }
-          });
-          // Загрузка расписания
-          fetchSchedule('{{ worker_id }}');
+          }
       });
+      // Загрузка расписания
+      fetchSchedule($('#worker_login').val());
+  });
 
-    function fetchSchedule(workerId) {
-        $.ajax({
-            url: `/api/schedule/${workerId}`,
-            type: 'GET',
-            success: function(data) {
-                $('#calendar').fullCalendar('removeEvents');
-                $('#calendar').fullCalendar('addEventSource', data);
-            },
-            error: function(e) {
-                console.error("Ошибка при получении данных: ", e);
-            }
-        });
-    }
-    </script>
+  function fetchSchedule(workerLogin) {
+      $.ajax({
+          url: `/api/schedule/${workerLogin}`,
+          type: 'GET',
+          success: function(data) {
+              $('#calendar').fullCalendar('removeEvents');
+              $('#calendar').fullCalendar('addEventSource', data);
+          },
+          error: function(e) {
+              console.error("Ошибка при получении данных: ", e);
+          }
+      });
+  }
+</script>
 </head>
 <body>
-    <input type="hidden" id="worker_id" value="{{ worker_id }}"> <!-- Используется для передачи worker_id в JavaScript -->
+  <a href="{{ url_for('worker_home') }}">Домашняя страница</a>
+    <input type="hidden" id="worker_login" value="{{ current_user.worker_login }}"> <!-- Используется для передачи worker_login в JavaScript -->
     <div id='calendar'></div> <!-- Контейнер для календаря -->
 </body>
 </html>
+

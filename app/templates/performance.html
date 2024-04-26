@@ -63,9 +63,10 @@
     </style>
 </head>
 <body>
+    <a href="{{ url_for('worker_home') }}">Домашняя страница</a>
     <h2>Performance Review</h2>
     <form id="performanceForm">
-        <input type="hidden" id="worker_id" value="{{ worker_id }}">
+        <input type="hidden" id="worker_id" value="{{ current_user.worker_id }}">
         Start Date: <input type="text" id="start_date" name="start_date">
         End Date: <input type="text" id="end_date" name="end_date">
         <select id="dateShortcuts">
@@ -151,7 +152,6 @@
                 },
                 success: function(response) {
                     updateTable(response.data);
-                    createChart(response.data); 
                 },
                 error: function(xhr, status, error) {
                     console.error("Ошибка при получении данных: " + error);
