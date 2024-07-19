@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Send Notification</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <a href="{{ url_for('worker_home') }}">Home</a>
+    <div class="container">
+        <h1>Send Notification</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('send_notification') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.recipient_id.label }}<br>
+                {{ form.recipient_id }}
+            </div>
+            <div>
+                {{ form.message.label }}<br>
+                {{ form.message }}
+            </div>
+            <div>
+                {{ form.notification_tags.label }}<br>
+                {{ form.notification_tags }}
+            </div>
+            <div>
+                {{ form.flash_type.label }}<br>
+                {{ form.flash_type }}
+            </div>
+            <button type="submit">Send Notification</button>
+        </form>
+        <a href="{{ url_for('admin_home') }}">Admin home</a>
+    </div>
+</body>
+</html>

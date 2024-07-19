@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Worker Information</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="burger_menu"></div>
+        <div class="logo"></div>
+        <a href="{{ url_for('show_messages') }}">Messages <span id="new-messages-count" class="new-messages">0</span></a>
+    </header>
+    <div class="container">
+        <h1>Welcome, {{ worker.fullname }}</h1>
+        <ul>
+            <li>GD: {{ worker.user_account.worker_login }}</li>
+            <li>Company: {{ worker.firm.name or 'Not provided' }}</li>
+            <li>Group: {{ worker.group_name.name if worker.group_name else 'Not provided' }} {{ worker.group_number.number if worker.group_number else '' }}</li>
+            <li>Language: {{ worker.language.name }}</li>
+            <li>Transport: {{ worker.transport or 'Not provided' }}</li>
+        </ul>
+    </div>
+    <div class="container">Links:
+        <a href="{{ url_for('show_performance', worker_login=current_user.worker_login) }}">Performance</a>
+        <a href="{{ url_for('show_schedule', worker_login=current_user.worker_login) }}">Schedule</a>
+        <a href="{{ url_for('worker_attendance') }}">Working Hours</a>
+        <a href="{{ url_for('feedback') }}">Write Feedback</a>
+        <a href="{{ url_for('absence_form') }}">Fill Absence Form</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        <a href="{{ url_for('admin_home') }}">Admin Panel</a>
+    </div>
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>

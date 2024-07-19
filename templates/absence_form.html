@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absence Notification Form</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+      $(function() {
+          $("#start_date, #end_date").datepicker({
+              minDate: 0,  // restrict past dates
+              dateFormat: 'dd-mm-yy'
+          }).on("change", function() {
+              var startDate = $("#start_date").datepicker("getDate");
+              $("#end_date").datepicker("setDate", startDate);
+          });
+      });
+  </script>
+</head>
+<body>
+  <a href="{{ url_for('worker_home') }}">Worker home</a>
+  <h2>Absence Notification Form</h2>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div>{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+  {% endwith %}
+  <form action="{{ url_for('submit_absence_form') }}" method="post" enctype="multipart/form-data">
+      <label for="start_date">Start Date:</label>
+      <input type="text" id="start_date" name="start_date" required><br>
+
+      <label for="end_date">End Date:</label>
+      <input type="text" id="end_date" name="end_date" required><br>
+
+      <label for="reason">Reason for Absence:</label>
+      <select id="reason" name="reason">
+          <option value="Medical Leave">Medical Leave</option>
+          <option value="Dentist Appointment">Dentist Appointment</option>
+          <option value="Doctor Appointment">Doctor Appointment</option>
+          <option value="Handling Documentation">Handling Documentation</option>
+          <option value="Childcare">Childcare</option>
+          <option value="Relocation">Relocation</option>
+          <option value="other">Other</option>
+      </select><br>
+
+      <label for="custom_reason">Custom Reason (if "Other" selected):</label>
+      <input type="text" id="custom_reason" name="custom_reason"><br>
+
+      <label for="file">Attach File (max 10MB):</label>
+      <input type="file" id="file" name="file" accept=".png,.jpg,.jpeg,.pdf,.heic"><br>
+
+      <input type="submit" value="Submit">
+  </form>
+</body>
+</html>

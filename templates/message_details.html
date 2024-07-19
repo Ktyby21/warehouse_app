@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Message Details</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h1>{{ message.title }}</h1>
+    <p>From: {{ message.sender.fullname }}</p>
+    <p>Sent: {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    <div>
+        {{ message.message_content|safe }}
+    </div>
+    <a href="{{ url_for('show_messages') }}">Back to Messages</a>
+</body>
+</html>

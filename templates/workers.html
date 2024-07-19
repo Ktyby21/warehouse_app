@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee List</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Employee List</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Full Name</th>
+                    <th>Language</th>
+                    <th>Company</th>
+                    <th>Group</th>
+                    <th>Transport</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for worker in workers %}
+                <tr>
+                    <td>{{ worker.user_account.worker_login }}</td>
+                    <td>{{ worker.fullname }}</td>
+                    <td>{{ worker.language.name }}</td>
+                    <td>{{ worker.firm.name }}</td>
+                    <td>{{ worker.group_name.name if worker.group_name }} {{ worker.group_number.number if worker.group_number else '' }}</td>
+                    <td>{{ worker.transport }}</td>
+                    <td>{{ worker.is_active }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11">No employee data available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('admin_home') }}">Back to Admin Panel</a>
+    </div>
+</body>
+</html>

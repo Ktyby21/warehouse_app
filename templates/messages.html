@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Messages</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <a href="{{ url_for('worker_home') }}">Worker home</a>
+    <h1>Messages</h1>
+    <ul>
+        {% for message in messages %}
+        <li>
+            <a href="{{ url_for('message_details', message_id=message.message_id) }}">
+                {{ message.title }} - {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

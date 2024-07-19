@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback #{{ feedback.feedback_id }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h2>Feedback from {{ feedback.worker_id }} on {{ feedback.feedback_date.strftime('%Y-%m-%d') }}</h2>
+    <p>{{ feedback.feedback_text }}</p>
+    <a href="{{ url_for('view_feedbacks') }}">Back to Feedback List</a>
+</body>
+</html>

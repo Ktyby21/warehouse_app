@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <a href="{{ url_for('workers') }}">List of Workers</a>
+        <a href="{{ url_for('view_feedbacks') }}">Feedback and Complaints</a>
+        <a href="{{ url_for('send_message') }}">Send Message</a>
+        <a href="{{ url_for('user_accounts') }}">User Data: Logins and Passwords</a>
+        <a href="{{ url_for('data_upload') }}">Manual Upload</a>
+        <a href="{{ url_for('logout') }}">Logout</a>        
+    </div>
+</body>
+</html>
