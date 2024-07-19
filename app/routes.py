@@ -474,11 +474,11 @@ def submit_absence_form():
         )
         db.session.add(new_absence)
         db.session.commit()
-        flash('Уведомление об отсутствии отправлено.')
+        flash('Attendance send.')
 
     except Exception as e:
         db.session.rollback()
-        flash(f'Ошибка обработки формы: {e}')
+        flash(f'Form error: {e}')
 
     return redirect(url_for('absence_form'))
 
