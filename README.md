@@ -140,7 +140,7 @@ Welcome to the Warehouse Management System! This is my first major project, buil
 2. **Open your browser and go to**:
 
     ```
-    http://127.0.0.1:5000/
+    http://127.0.0.1:5000/login
     ```
 
 ## Directory Structure
