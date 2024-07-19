@@ -120,9 +120,9 @@ Welcome to the Warehouse Management System! This is my first major project, buil
     ('superadmin', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'superadmin'), FALSE);
     ```
 3 users and passwords
-login 'user1' - password '1'
-login 'admin1' - password '1'
-login 'superadmin1' - password '1'
+- login 'user1' - password '1'
+- login 'admin1' - password '1'
+- login 'superadmin1' - password '1'
 
 ### Running the Application
 
