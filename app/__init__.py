@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate
 
 app = Flask(__name__,
             static_folder='../static',
@@ -11,6 +12,7 @@ app = Flask(__name__,
 app.secret_key = 'wash_sekretnyi_kluch_zdes'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://danielteshner:Isedim2112@localhost/test_db'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Import routes and models
 from . import routes, models
