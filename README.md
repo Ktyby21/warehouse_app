@@ -118,6 +118,11 @@ Welcome to the Warehouse Management System! This is my first major project, buil
     ('user1', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'user'), FALSE),
     ('admin1', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'admin'), FALSE),
     ('superadmin', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'superadmin'), FALSE);
+
+    INSERT INTO worker_info (worker_id, fullname, language_id, firm_id, transport_id, group_name_id, group_number_id, location_id) VALUES
+    ((SELECT worker_id FROM users WHERE worker_login = 'user1'), 'user1', NULL, NULL, NULL, NULL, NULL, NULL),
+    ((SELECT worker_id FROM users WHERE worker_login = 'admin1'), 'admin1', NULL, NULL, NULL, NULL, NULL, NULL),
+    ((SELECT worker_id FROM users WHERE worker_login = 'superadmin'), 'superadmin', NULL, NULL, NULL, NULL, NULL, NULL);
     ```
 3 users and passwords
 - login 'user1' - password '1'
