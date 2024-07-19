@@ -190,4 +190,6 @@ Welcome to the Warehouse Management System! This is my first major project, buil
     └── workers.html
 ```
 ## About This Project
-Hi! I'm a self-taught developer, and this is my first major programming project. I created this application to learn and practice web development with Flask. Through this project, I've learned a lot about user authentication, database management, and creating dynamic web pages.
+
+Hi! I'm a self-taught developer, and this is my first major programming project. I created this application to learn and practice web development with Flask. Through this project, I've learned a lot about user authentication, database management, and creating dynamic web pages. I haven't fully implemented all the features I had planned, and many are still in development.
+
