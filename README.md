@@ -95,19 +95,44 @@ Welcome to the Warehouse Management System! This is my first major project, buil
       flask db upgrade
       ```
 
-    - **Import the PostgreSQL database backup**:
+    - **Import the PostgreSQL database backup (if required)**:
 
       ```sh
       psql -U yourusername -d yourdatabase -f database_backup.sql
       ```
 
-7. **Run the application**:
+7. **Add access levels and create users**:
+
+    Open PostgreSQL command-line tool:
+
+    ```sh
+    psql -U yourusername -d yourdatabase
+    ```
+
+    Run the following SQL commands to add access levels and create users:
+
+    ```sql
+    INSERT INTO user_access_levels (access_level_name) VALUES ('user'), ('admin'), ('superadmin');
+
+    INSERT INTO users (worker_login, password, access_level_id, is_logged_in) VALUES
+    ('user1', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'user'), FALSE),
+    ('admin1', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'admin'), FALSE),
+    ('superadmin', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'superadmin'), FALSE);
+    ```
+3 users and passwords
+login 'user1' - password '1'
+login 'admin1' - password '1'
+login 'superadmin1' - password '1'
+
+### Running the Application
+
+1. **Run the application**:
 
     ```sh
     flask run
     ```
 
-8. **Open your browser and go to**:
+2. **Open your browser and go to**:
 
     ```
     http://127.0.0.1:5000/
@@ -160,5 +185,4 @@ Welcome to the Warehouse Management System! This is my first major project, buil
     └── workers.html
 ```
 ## About This Project
-
 Hi! I'm a self-taught developer, and this is my first major programming project. I created this application to learn and practice web development with Flask. Through this project, I've learned a lot about user authentication, database management, and creating dynamic web pages.
