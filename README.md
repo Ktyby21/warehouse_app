@@ -64,11 +64,11 @@ Welcome to the Warehouse Management System! This is my first major project, buil
     Create a file named `.env` in the root directory of the project with the following content:
 
     ```plaintext
-    DATABASE_URL=postgresql://yourusername:yourpassword@localhost/yourdatabase
+    DATABASE_URL=postgresql://yourusername:yourpassword@localhost/warehouse_db
     SECRET_KEY=your_secret_key
     ```
 
-    Replace `yourusername`, `yourpassword`, `yourdatabase`, and `your_secret_key` with your own values.
+    Replace `yourusername`, `yourpassword`, and `your_secret_key` with your own values.
 
 5. **Create a PostgreSQL user and database**:
 
@@ -82,52 +82,25 @@ Welcome to the Warehouse Management System! This is my first major project, buil
 
     ```sql
     CREATE USER yourusername WITH PASSWORD 'yourpassword';
-    CREATE DATABASE yourdatabase OWNER yourusername;
     ```
 
 6. **Set up the database**:
 
-    - **Initialize the Flask database**:
+` - **Import the PostgreSQL database backup (if required)**:
 
       ```sh
-      flask db init
-      flask db migrate -m "Initial migration."
-      flask db upgrade
+      psql -U yourusername -d postgres -f database_backup.sql
       ```
-
-    - **Import the PostgreSQL database backup (if required)**:
-
-      ```sh
-      psql -U yourusername -d yourdatabase -f database_backup.sql
-      ```
-
-7. **Add access levels and create users**:
-
-    Open PostgreSQL command-line tool:
-
-    ```sh
-    psql -U yourusername -d yourdatabase
-    ```
-
-    Run the following SQL commands to add access levels and create users:
-
-    ```sql
-    INSERT INTO user_access_levels (access_level_name) VALUES ('user'), ('admin'), ('superadmin');
-
-    INSERT INTO users (worker_login, password, access_level_id, is_logged_in) VALUES
-    ('user1', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'user'), FALSE),
-    ('admin1', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'admin'), FALSE),
-    ('superadmin', '1', (SELECT access_level_id FROM user_access_levels WHERE access_level_name = 'superadmin'), FALSE);
-
-    INSERT INTO worker_info (worker_id, fullname, language_id, firm_id, transport_id, group_name_id, group_number_id, location_id) VALUES
-    ((SELECT worker_id FROM users WHERE worker_login = 'user1'), 'user1', NULL, NULL, NULL, NULL, NULL, NULL),
-    ((SELECT worker_id FROM users WHERE worker_login = 'admin1'), 'admin1', NULL, NULL, NULL, NULL, NULL, NULL),
-    ((SELECT worker_id FROM users WHERE worker_login = 'superadmin'), 'superadmin', NULL, NULL, NULL, NULL, NULL, NULL);
-    ```
-3 users and passwords
-- login 'user1' - password '1'
-- login 'admin1' - password '1'
-- login 'superadmin1' - password '1'
+`
+Users and passwords by default at database
+- "1"	"1" user
+- "2"	"2" admin
+- "3"	"3" superadmin
+- "4"	"4" user
+- "LOGIN1"	"1" user
+- "LOGIN2"	"2" user
+- "LOGIN3"	"3" user
+- "LOGIN4"	"4" user
 
 ### Running the Application
 
@@ -154,13 +127,6 @@ Welcome to the Warehouse Management System! This is my first major project, buil
 ├── database_backup.sql
 ├── run.py
 ├── requirements.txt
-├── migrations
-│   ├── alembic.ini
-│   ├── env.py
-│   ├── README
-│   ├── script.py.mako
-│   └── versions
-│       └── <migration_files>.py
 ├── static
 │   ├── css
 │   │   └── styles.css
