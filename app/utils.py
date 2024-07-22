@@ -6,6 +6,8 @@ from sqlalchemy import func
 from .models import ProcessTarget, UserAccessLevel, UserAccount, Worker, Attendance , Firm, WorkerGroupName, WorkerGroupNumber, WorkerTransportType, db
 import pandas as pd
 from datetime import timedelta
+from io import BytesIO
+import psycopg2
 
 # Decorator to check access levels
 def requires_access_level(access_levels):

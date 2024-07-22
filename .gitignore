@@ -3,3 +3,6 @@
 
 # Ignore virtual environment
 venv/
+migrations/
+app/__pycache__/
+.env

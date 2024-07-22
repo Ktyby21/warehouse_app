@@ -202,7 +202,11 @@ def upload_process_data():
             if process_name:
                 process_type = ProcessType.query.filter_by(process_name=process_name).first()
                 if not process_type:
-                    flash(f'Process "{process_name}" not found.', 'warning')
+                    new_process_type = ProcessType(
+                        process_name=process_name
+                    )
+                    db.session.add(new_process_type)
+                    flash(f'Process "{process_name}" created.', 'warning')
                     continue
                 process_id = process_type.process_id
             else:
