@@ -70,7 +70,7 @@ Welcome to the Warehouse Management System! This is my first major project, buil
 
     Replace `yourusername`, `yourpassword`, and `your_secret_key` with your own values.
 
-5. **Create a PostgreSQL user and database**:
+5. **Create a PostgreSQL user**:
 
     Open PostgreSQL command-line tool:
 
@@ -86,7 +86,7 @@ Welcome to the Warehouse Management System! This is my first major project, buil
 
 6. **Set up the database**:
 
-` - **Import the PostgreSQL database backup (if required)**:
+` - **Import the PostgreSQL database backup**:
 
       ```sh
       psql -U yourusername -d postgres -f database_backup.sql
