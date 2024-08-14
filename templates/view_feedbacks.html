@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback and Complaints</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <h2>Feedback and Complaints</h2>
+    {% for feedback in feedbacks %}
+    <div class="feedback">
+        <p><strong>From: {{ feedback.worker_id }}</strong> | Date: {{ feedback.feedback_date.strftime('%Y-%m-%d') }}</p>
+        <p>{{ feedback.feedback_text[:50] }}... <a href="{{ url_for('feedback_details', feedback_id=feedback.feedback_id) }}">Read more</a></p>
+    </div>
+    {% else %}
+    <p>No feedback available.</p>
+    {% endfor %}
+    <a href="{{ url_for('admin_home') }}">Admin home</a>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Evaluation</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <a href="{{ url_for('worker_home') }}">Worker home</a>
+    <h2>Performance Evaluation</h2>
+    <form id="performanceForm">
+        <input type="hidden" id="worker_id" value="{{ current_user.worker_id }}">
+        Start Date: <input type="text" id="start_date" name="start_date">
+        End Date: <input type="text" id="end_date" name="end_date">
+        <select id="dateShortcuts">
+            <option value="">Select Period</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="thisWeek">This Week</option>
+            <option value="thisMonth">This Month</option>
+        </select>
+        <input type="button" value="Submit" onclick="fetchPerformance()">
+    </form>
+    <table id="performanceTable">
+        <thead>
+            <tr>
+                <th>Process Name</th>
+                <th>Total Scanned Items</th>
+                <th>Total Time Spent (hrs)</th>
+                <th>Items per Hour</th>
+                <th>Performance (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <div id="totalPerformance"></div>
+    <canvas id="performanceChart" width="400" height="150"></canvas>
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>

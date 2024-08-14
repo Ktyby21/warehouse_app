@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Notifications</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Notifications</h1>
+        {% for notification in notifications %}
+            <div class="notification">
+                <p><strong>Sender:</strong> {{ notification.sender_id }}</p>
+                <p><strong>Recipient:</strong> {{ notification.recipient_id }}</p>
+                <p class="notification-date"><strong>Send Date:</strong> {{ notification.send_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p><strong>Message:</strong> {{ notification.message }}</p>
+            </div>
+        {% else %}
+            <p>No notifications available.</p>
+        {% endfor %}
+        <a href="{{ url_for('admin_home') }}">Admin home</a>
+    </div>
+</body>
+</html>

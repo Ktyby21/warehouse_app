@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div>
+        <a href="{{ url_for('worker_home') }}">Worker home</a>
+        <h1>Feedback</h1>
+        <form action="" method="post">
+            <div>
+                <label for="content">Feedback</label>
+                <textarea name="content" id="content" rows="4" cols="50" required></textarea>
+            </div>
+            <div class="checkbox">
+                <input type="checkbox" name="anonymous" id="anonymous">
+                <label for="anonymous">Submit anonymously</label>
+            </div>
+            <div>
+                <button type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html>

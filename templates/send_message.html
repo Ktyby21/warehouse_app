@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Message</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    <a href="{{ url_for('admin_home') }}">Admin home</a>
+    <h1>Create New Message</h1>
+    <form id="messageForm" action="/send-message" method="post">
+        <input type="text" id="titleInput" name="title" placeholder="Enter message title" required><br>
+        <div id="editor" contenteditable="true"></div>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+        <button type="button" onclick="document.getElementById('fileInput').click();">Add Image</button><br>
+        <input type="hidden" name="content" id="hiddenInput">
+        <input type="text" name="recipient" placeholder="Enter recipient"><br>
+        <select name="group_id">
+            <option value="">Select group</option>
+            {% for group in groups %}
+            <option value="{{ group.group_id }}">{{ group.group_name }}</option>
+            {% endfor %}
+        </select><br>
+        <button type="submit">Send Message</button>
+    </form>
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>
